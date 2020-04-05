@@ -53,6 +53,11 @@ enum dsi_backlight_type {
 	DSI_BACKLIGHT_MAX,
 };
 
+enum dsi_doze_mode_type {
+	DSI_DOZE_LPM = 0,
+	DSI_DOZE_HBM,
+};
+
 enum bl_update_flag {
 	BL_UPDATE_DELAY_UNTIL_FIRST_FRAME,
 	BL_UPDATE_NONE,
@@ -243,6 +248,9 @@ struct dsi_panel {
 	
 	int hbm_mode;
 
+	bool doze_enabled;
+	enum dsi_doze_mode_type doze_mode;
+
 	struct brightness_alpha_pair *fod_dim_lut;
 	u32 fod_dim_lut_count;
 	bool resend_ea;
@@ -385,6 +393,10 @@ int dsi_panel_tx_cmd_set(struct dsi_panel *panel,
 				enum dsi_cmd_set_type type);
 int dsi_panel_update_backlight(struct dsi_panel *panel,
 				u32 bl_lvl);
+
+int dsi_panel_set_doze_status(struct dsi_panel *panel, bool status);
+
+int dsi_panel_set_doze_mode(struct dsi_panel *panel, enum dsi_doze_mode_type mode);
 
 int dsi_panel_set_fod_hbm(struct dsi_panel *panel, bool status);
 
