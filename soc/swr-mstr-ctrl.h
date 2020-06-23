@@ -168,6 +168,7 @@ struct swr_mstr_ctrl {
 	u32 ipc_wakeup;
 	bool dev_up;
 	bool ipc_wakeup_triggered;
+	bool aud_core_err;
 	bool req_clk_switch;
 	struct pm_qos_request pm_qos_req;
 	enum swrm_pm_state pm_state;
