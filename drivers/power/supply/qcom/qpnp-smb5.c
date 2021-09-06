@@ -2523,6 +2523,7 @@ static int smb5_get_prop_reverse_pen_soc(struct smb_charger *chg,
 	return rc;
 }
 
+/*set mode of DIV 2*/
 static int smb5_set_prop_div2_mode(struct smb_charger *chg,
 				const union power_supply_propval *val)
 {
@@ -3497,7 +3498,7 @@ static int smb5_configure_typec(struct smb_charger *chg)
 	 * cables due to VBUS attachment prior to CC attach/detach. Reset
 	 * the legacy detection logic by enabling/disabling the typeC mode.
 	 */
-	if (val & TYPEC_LEGACY_CABLE_STATUS_BIT) {
+	if (chg->pd_not_supported && (val & TYPEC_LEGACY_CABLE_STATUS_BIT)) {
 		pval.intval = POWER_SUPPLY_TYPEC_PR_NONE;
 		rc = smblib_set_prop_typec_power_role(chg, &pval);
 		if (rc < 0) {

@@ -4257,6 +4257,10 @@ int smblib_disable_hw_jeita(struct smb_charger *chg, bool disable)
 	int rc;
 	u8 mask;
 
+	/*
+	 * Disable h/w base JEITA compensation if s/w JEITA is enabled
+	 */
+	 /*J1 use ti gauge disable all hard jeita, J2 use qcom default jeita */
 #if (defined CONFIG_FUEL_GAUGE_BQ27Z561) || (defined CONFIG_DUAL_FUEL_GAUGE_BQ27Z561)
 	mask = 0xFF;
 	pr_info("should disable hw jeita");
@@ -6316,6 +6320,7 @@ static int smblib_handle_usb_current(struct smb_charger *chg,
 		usb_current = USBIN_500MA;
 	if (chg->real_charger_type == POWER_SUPPLY_TYPE_USB_FLOAT) {
 		if (usb_current == -ETIMEDOUT || is_float) {
+			/* we do not use USB500mA for float charger */
 			if (chg->connector_type == POWER_SUPPLY_CONNECTOR_TYPEC) {
 				/*
 				 * Valid FLOAT charger, report the current
@@ -9560,7 +9565,7 @@ irqreturn_t typec_attach_detach_irq_handler(int irq, void *data)
 				smblib_wireless_set_rx_sleep_pin(chg, true);
 			}
 #ifdef CONFIG_DUAL_FUEL_GAUGE_BQ27Z561
-		Dual_Fg_Reset_Batt_Ctrl_gpio_default();
+			Dual_Fg_Reset_Batt_Ctrl_gpio_default();
 #endif
 			break;
 		case AUDIO_ACCESS_MODE:
@@ -9630,8 +9635,6 @@ int smblib_set_sw_disable_dc_en(struct smb_charger *chg,
 			dev_err(chg->dev, "Couldn't enable dcin_pulldown rc=%d\n", rc);
 			return rc;
 		}
-		/* wait 10ms to pull mid_chg lower than Vsys+Vrevi */
-		msleep(10);
 
 		/* step4: exit dc suspend */
 		rc = vote(chg->dc_suspend_votable, SW_DISABLE_DC_VOTER,
@@ -10649,7 +10652,6 @@ out:
 	} else {
 		interval_ms = STEP_CHG_DELAYED_MONITOR_MS;
 	}
-
 	schedule_delayed_work(&chg->six_pin_batt_step_chg_work,
 				msecs_to_jiffies(interval_ms));
 }
