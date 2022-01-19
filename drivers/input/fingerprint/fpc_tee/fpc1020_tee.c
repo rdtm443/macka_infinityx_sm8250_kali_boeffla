@@ -25,7 +25,9 @@
  * as published by the Free Software Foundation.
  */
 
+#if 0 // Disable drm workaround for now
 #define FPC_DRM_INTERFACE_WA
+#endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
