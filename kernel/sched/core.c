@@ -28,6 +28,11 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
+#undef CREATE_TRACE_POINTS
+#include <trace/events/kperfevents_sched.h>
+#define CREATE_TRACE_POINTS
+DEFINE_TRACE(kperfevents_sched_wait);
+
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 #ifdef CONFIG_SCHED_DEBUG
@@ -2181,7 +2186,26 @@ int select_task_rq(struct task_struct *p, int cpu, int sd_flags, int wake_flags,
 		   int sibling_count_hint)
 {
 	bool allow_isolated = (p->flags & PF_KTHREAD);
+#if IS_ENABLED(CONFIG_MIGT)
+	bool minor_wtask = minor_window_task(p);
+	cpumask_t minor_window_cpumask;
 
+	if (minor_wtask && !(p->pkg.migt.flag & MINOR_TASK)) {
+		p->pkg.migt.flag |= MINOR_TASK;
+		cpumask_copy(&p->pkg.migt.cpus_allowed, &p->cpus_allowed);
+
+		if (get_minor_window_cpumask(p, &minor_window_cpumask)) {
+			cpumask_copy(&p->cpus_allowed, &minor_window_cpumask);
+			p->nr_cpus_allowed = cpumask_weight(&minor_window_cpumask);
+		}
+	}
+
+	if (!minor_wtask && (p->pkg.migt.flag & MINOR_TASK)) {
+		p->pkg.migt.flag &= ~MINOR_TASK;
+		cpumask_copy(&p->cpus_allowed, &p->pkg.migt.cpus_allowed);
+		p->nr_cpus_allowed = cpumask_weight(&p->cpus_allowed);
+	}
+#endif
 	lockdep_assert_held(&p->pi_lock);
 
 	if (p->nr_cpus_allowed > 1)
@@ -8658,3 +8682,43 @@ void sched_exit(struct task_struct *p)
 #endif /* CONFIG_SCHED_WALT */
 
 __read_mostly bool sched_predl = 1;
+
+#if IS_ENABLED(CONFIG_MIHW)
+inline bool is_critical_task(struct task_struct *p)
+{
+	return is_top_app(p) || is_inherit_top_app(p);
+}
+
+inline bool is_top_app(struct task_struct *p)
+{
+	return p && p->top_app > 0;
+}
+
+inline bool is_inherit_top_app(struct task_struct *p)
+{
+	return p && p->inherit_top_app > 0;
+}
+
+inline void set_inherit_top_app(struct task_struct *p,
+				struct task_struct *from)
+{
+	if (!p || !from)
+		return;
+	if (is_critical_task(p) || from->inherit_top_app >= INHERIT_DEPTH)
+		return;
+	p->inherit_top_app = from->inherit_top_app + 1;
+#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+	p->human_task = 1;
+#endif
+}
+
+inline void restore_inherit_top_app(struct task_struct *p)
+{
+	if (p && is_inherit_top_app(p)) {
+		p->inherit_top_app = 0;
+#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+		p->human_task  = 0 ;
+#endif
+	}
+}
+#endif /* CONFIG_MIHW */
