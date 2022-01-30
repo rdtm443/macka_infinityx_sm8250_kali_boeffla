@@ -6465,7 +6465,7 @@ static DEVICE_ATTR_RW(prctmode);
 static DEVICE_ATTR_RW(trig);
 static DEVICE_ATTR_RW(ram_vbat_comp);
 static DEVICE_ATTR_RW(osc_cali);
-static DEVICE_ATTR_RW(f0_check);
+static DEVICE_ATTR_RO(f0_check);
 static DEVICE_ATTR_RW(f0_save);
 static DEVICE_ATTR_RW(osc_save);
 static DEVICE_ATTR_RO(f0_value);
