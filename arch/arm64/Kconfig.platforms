@@ -443,61 +443,51 @@ config BOARD_XIAOMI_SM8250
 if BOARD_XIAOMI_SM8250
 config BOARD_ALIOTH
 	bool "Alioth and AliothIN platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi Redmi K40 / POCO F3 / MI 11x.
 
 config BOARD_APOLLO
 	bool "Apollo and Apollopro platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI 10T/Pro / Redmi K30S.
 
 config BOARD_CAS
 	bool "Cas platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI 10 Ultra.
 
 config BOARD_CMI
 	bool "Cmi platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI 10 Pro.
 
 config BOARD_ELISH
 	bool "Elish platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI Pad 5 Pro.
 
 config BOARD_ENUMA
 	bool "Enuma platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI Pad 5 Pro 5G.
 
 config BOARD_LMI
 	bool "Lmi, Lmiin and Lmipro platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi Redmi K30 Pro / POCO F2 Pro.
 
 config BOARD_PSYCHE
 	bool "Psyche platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI 12X.
 
 config BOARD_THYME
 	bool "Thyme platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI 10S.
 
 config BOARD_UMI
 	bool "Umi platform"
-	select BOARD_XIAOMI_SM8250
 	help
 	  This enables support for Xiaomi MI 10.
 endif
@@ -510,19 +500,16 @@ config BOARD_XIAOMI_SM7250
 if BOARD_XIAOMI_SM7250
 config BOARD_PICASSO
 	bool "Picasso and Picassoin platform"
-	select BOARD_XIAOMI_SM7250
 	help
 	  This enables support for Xiaomi Redmi K30 5G.
 
 config BOARD_VANGOGH
 	bool "Vangogh platform"
-	select BOARD_XIAOMI_SM7250
 	help
 	  This enables support for Xiaomi MI 10 Lite Zoom.
 
 config BOARD_MONET
 	bool "Monet platform"
-	select BOARD_XIAOMI_SM7250
 	help
 	  This enables support for Xiaomi MI 10 Lite.
 endif
