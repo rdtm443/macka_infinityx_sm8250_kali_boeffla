@@ -2186,26 +2186,6 @@ int select_task_rq(struct task_struct *p, int cpu, int sd_flags, int wake_flags,
 		   int sibling_count_hint)
 {
 	bool allow_isolated = (p->flags & PF_KTHREAD);
-#if IS_ENABLED(CONFIG_MIGT)
-	bool minor_wtask = minor_window_task(p);
-	cpumask_t minor_window_cpumask;
-
-	if (minor_wtask && !(p->pkg.migt.flag & MINOR_TASK)) {
-		p->pkg.migt.flag |= MINOR_TASK;
-		cpumask_copy(&p->pkg.migt.cpus_allowed, &p->cpus_allowed);
-
-		if (get_minor_window_cpumask(p, &minor_window_cpumask)) {
-			cpumask_copy(&p->cpus_allowed, &minor_window_cpumask);
-			p->nr_cpus_allowed = cpumask_weight(&minor_window_cpumask);
-		}
-	}
-
-	if (!minor_wtask && (p->pkg.migt.flag & MINOR_TASK)) {
-		p->pkg.migt.flag &= ~MINOR_TASK;
-		cpumask_copy(&p->cpus_allowed, &p->pkg.migt.cpus_allowed);
-		p->nr_cpus_allowed = cpumask_weight(&p->cpus_allowed);
-	}
-#endif
 	lockdep_assert_held(&p->pi_lock);
 
 	if (p->nr_cpus_allowed > 1)
