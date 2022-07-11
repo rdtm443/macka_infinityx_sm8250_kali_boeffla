@@ -18,21 +18,21 @@
 
 # Start cleanup of previous build
 if [[ -d anykernel ]]; then
-	rm -fr $(pwd)/anykernel/
+    rm -fr $(pwd)/anykernel/
 fi
 
 if [[ -f ${OUT_DIR}/arch/arm64/boot/dtb ]]; then
-	rm -fr ${OUT_DIR}/arch/arm64/boot/dtb
+    rm -fr ${OUT_DIR}/arch/arm64/boot/dtb
 fi
 
 if [[ -f ${OUT_DIR}/arch/arm64/boot/Image.gz ]]; then
-	rm -fr ${OUT_DIR}/arch/arm64/boot/Image.gz
+    rm -fr ${OUT_DIR}/arch/arm64/boot/Image.gz
 elif [[ -f ${OUT_DIR}/arch/arm64/boot/Image ]]; then
-	rm -fr ${OUT_DIR}/arch/arm64/boot/Image
+    rm -fr ${OUT_DIR}/arch/arm64/boot/Image
 fi
 
 if [[ -f ${OUT_DIR}/arch/arm64/boot/dtbo.img ]]; then
-	rm -fr ${OUT_DIR}/arch/arm64/boot/dtbo.img
+    rm -fr ${OUT_DIR}/arch/arm64/boot/dtbo.img
 fi
 
 KBUILD_COMPILER_STRING=$(${HOME}/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
@@ -163,6 +163,26 @@ function disable_lto() {
     cd ../ || exit
 }
 
+function pack_image_build() {
+    mkdir -p anykernel/kernels/$1
+
+    # Check if the kernel is built
+    if [[ -f ${OUT_DIR}/System.map ]]; then
+        if [[ -f ${OUT_DIR}/arch/arm64/boot/Image.gz ]]; then
+            cp ${OUT_DIR}/arch/arm64/boot/Image.gz anykernel/kernels/$1
+        elif [[ -f ${OUT_DIR}/arch/arm64/boot/Image ]]; then
+            cp ${OUT_DIR}/arch/arm64/boot/Image anykernel/kernels/$1
+        else
+            tg_post_error $1
+        fi
+    else
+        tg_post_error $1
+    fi
+
+    cp ${OUT_DIR}/arch/arm64/boot/dtb anykernel/kernels/$1
+    cp ${OUT_DIR}/arch/arm64/boot/dtbo.img anykernel/kernels/$1
+}
+
 START=$(date +"%s")
 
 # Set compiler Path
@@ -198,108 +218,97 @@ fi
 # cp ${OUT_DIR}/arch/arm64/boot/dtbo.img anykernel/kernels/$os
 # echo "------ Finishing AOSP Build ------"
 
-# MIUI Build
-echo "------ Starting MIUI Build ------"
-os=miui
-
-# Make defconfig
-make -j${KEBABS} ${ARGS} "${DEVICE}"_defconfig
-
-scripts/config --file ${OUT_DIR}/.config \
-    -d LOCALVERSION_AUTO \
-    -d TOUCHSCREEN_COMMON \
-    --set-str STATIC_USERMODEHELPER_PATH /system/bin/micd \
-    -e BOOT_INFO \
-    -e BINDER_OPT \
-    -e DEBUG_KERNEL \
-    -e IPC_LOGGING \
-    -e KPERFEVENTS \
-    -e LAST_TOUCH_EVENTS \
-    -e MIGT \
-    -e MIHW \
-    -e MILLET \
-    -e MI_DRM_OPT \
-    -e MIUI_ZRAM_MEMORY_TRACKING \
-    -e MI_RECLAIM \
-    -d OSSFOD \
-    -e PERF_HUMANTASK \
-    -e TASK_DELAY_ACCT
-
-# FIXME: disable LTO on MIUI
-if [[ "$@" =~ "lto"* ]]; then
-    disable_lto
-fi
-
-# Make olddefconfig
-cd ${OUT_DIR} || exit
-make -j${KEBABS} ${ARGS} CC="ccache clang" HOSTCC="ccache gcc" HOSTCXX="cache g++" olddefconfig
-cd ../ || exit
-
-miui_fix_dimens
-miui_fix_fps
-miui_fix_dfps
-miui_fix_fod
-
-make -j${KEBABS} ${ARGS} CC="ccache clang" HOSTCC="ccache gcc" HOSTCXX="ccache g++" 2>&1 | tee build.log
-
-find ${OUT_DIR}/$dts_source -name '*.dtb' -exec cat {} + >${OUT_DIR}/arch/arm64/boot/dtb
-
-mkdir -p anykernel/kernels/$os
-# Import Anykernel3 folder
-if [[ -f ${OUT_DIR}/arch/arm64/boot/Image.gz ]]; then
-    cp ${OUT_DIR}/arch/arm64/boot/Image.gz anykernel/kernels/$os
-else
-    if [[ -f ${OUT_DIR}/arch/arm64/boot/Image ]]; then
-        cp ${OUT_DIR}/arch/arm64/boot/Image anykernel/kernels/$os
-    else
-        tg_post_error miui
-    fi
-fi
-cp ${OUT_DIR}/arch/arm64/boot/dtb anykernel/kernels/$os
-cp ${OUT_DIR}/arch/arm64/boot/dtbo.img anykernel/kernels/$os
-
-git checkout arch/arm64/boot/dts/vendor &>/dev/null
-echo "------ Finishing MIUI Build ------"
-
-# # AOSPA Build
-# echo "------ Starting AOSPA Build ------"
-# os=aospa
+# # MIUI Build
+# echo "------ Starting MIUI Build ------"
+# os=miui
 
 # # Make defconfig
 # make -j${KEBABS} ${ARGS} "${DEVICE}"_defconfig
 
 # scripts/config --file ${OUT_DIR}/.config \
-#     -d SDCARD_FS \
-#     -e UNICODE
+#     -d LOCALVERSION_AUTO \
+#     -d TOUCHSCREEN_COMMON \
+#     --set-str STATIC_USERMODEHELPER_PATH /system/bin/micd \
+#     -e BOOT_INFO \
+#     -e BINDER_OPT \
+#     -e DEBUG_KERNEL \
+#     -e IPC_LOGGING \
+#     -e KPERFEVENTS \
+#     -e LAST_TOUCH_EVENTS \
+#     -e MIGT \
+#     -e MIHW \
+#     -e MILLET \
+#     -e MI_DRM_OPT \
+#     -e MIUI_ZRAM_MEMORY_TRACKING \
+#     -e MI_RECLAIM \
+#     -d OSSFOD \
+#     -e PERF_HUMANTASK \
+#     -e TASK_DELAY_ACCT
 
-# # Enable LTO
+# # FIXME: disable LTO on MIUI
 # if [[ "$@" =~ "lto"* ]]; then
-#     enable_lto
+#     disable_lto
 # fi
 
 # # Make olddefconfig
 # cd ${OUT_DIR} || exit
-# make -j${KEBABS} ${ARGS} olddefconfig
+# make -j${KEBABS} ${ARGS} CC="ccache clang" HOSTCC="ccache gcc" HOSTCXX="cache g++" olddefconfig
 # cd ../ || exit
 
-# make -j${KEBABS} ${ARGS} 2>&1 | tee build.log
+# miui_fix_dimens
+# miui_fix_fps
+# miui_fix_dfps
+# miui_fix_fod
 
-# find ${OUT_DIR}/$dts_source -name '*.dtb' -exec cat {} + > ${OUT_DIR}/arch/arm64/boot/dtb
+# make -j${KEBABS} ${ARGS} CC="ccache clang" HOSTCC="ccache gcc" HOSTCXX="ccache g++" 2>&1 | tee build.log
+
+# find ${OUT_DIR}/$dts_source -name '*.dtb' -exec cat {} + >${OUT_DIR}/arch/arm64/boot/dtb
 
 # mkdir -p anykernel/kernels/$os
 # # Import Anykernel3 folder
 # if [[ -f ${OUT_DIR}/arch/arm64/boot/Image.gz ]]; then
 #     cp ${OUT_DIR}/arch/arm64/boot/Image.gz anykernel/kernels/$os
 # else
-#   if [[ -f ${OUT_DIR}/arch/arm64/boot/Image ]]; then
-#       cp ${OUT_DIR}/arch/arm64/boot/Image anykernel/kernels/$os
-#   else
-#       tg_post_error aospa
-#   fi
+#     if [[ -f ${OUT_DIR}/arch/arm64/boot/Image ]]; then
+#         cp ${OUT_DIR}/arch/arm64/boot/Image anykernel/kernels/$os
+#     else
+#         tg_post_error miui
+#     fi
 # fi
 # cp ${OUT_DIR}/arch/arm64/boot/dtb anykernel/kernels/$os
 # cp ${OUT_DIR}/arch/arm64/boot/dtbo.img anykernel/kernels/$os
-# echo "------ Finishing AOSPA Build ------"
+
+# git checkout arch/arm64/boot/dts/vendor &>/dev/null
+# echo "------ Finishing MIUI Build ------"
+
+# AOSPA Build
+echo "------ Starting AOSPA Build ------"
+os=aospa
+
+# Make defconfig
+make -j${KEBABS} ${ARGS} "${DEVICE}"_defconfig
+
+scripts/config --file ${OUT_DIR}/.config \
+    -d SDCARD_FS \
+    -e UNICODE
+
+# Enable LTO
+if [[ "$@" =~ "lto"* ]]; then
+    enable_lto
+fi
+
+# Make olddefconfig
+cd ${OUT_DIR} || exit
+make -j${KEBABS} ${ARGS} olddefconfig
+cd ../ || exit
+
+make -j${KEBABS} ${ARGS} 2>&1 | tee build.log
+
+find ${OUT_DIR}/$dts_source -name '*.dtb' -exec cat {} + > ${OUT_DIR}/arch/arm64/boot/dtb
+
+pack_image_build $os
+
+echo "------ Finishing AOSPA Build ------"
 
 END=$(date +"%s")
 DIFF=$((END - START))
@@ -307,21 +316,8 @@ DIFF=$((END - START))
 cd anykernel || exit
 zip -r9 "${ZIPNAME}" ./* -x .git .gitignore ./*.zip
 
-FILEID=$(pd upload $ZIPNAME)
-
-echo $FILEID
-
-CHECKER=$(find ./ -maxdepth 1 -type f -name ${ZIPNAME} -printf "%s\n")
-if (($((CHECKER / 1048576)) > 5)); then
-    curl -s -X POST https://api.telegram.org/bot"${BOT_API_KEY}"/sendMessage -d text="✅ Kernel compiled successfully in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds for ${DEVICE}" -d chat_id="${CI_CHANNEL_ID}" -d parse_mode=HTML
-    curl -s -X POST https://api.telegram.org/bot"${BOT_API_KEY}"/sendMessage -d text="Kernel build link: $FILEID" -d chat_id="${CI_CHANNEL_ID}" -d parse_mode=HTML
-    curl -F chat_id="${CI_CHANNEL_ID}" -F document=@"$(pwd)/${ZIPNAME}" https://api.telegram.org/bot"${BOT_API_KEY}"/sendDocument
-else
-    tg_post_error
-fi
-cd $(pwd) || exit
+gdrive upload $ZIPNAME
 
 echo ""
 echo -e $ZIPNAME " is ready!"
 echo ""
-
