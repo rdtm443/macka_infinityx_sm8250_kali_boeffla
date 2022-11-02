@@ -3163,7 +3163,7 @@ static int tfa98xx_mute(struct snd_soc_dai *dai, int mute, int stream)
 		if (stream == SNDRV_PCM_STREAM_PLAYBACK){
 			tfa98xx->pstream = 0;
 #if defined(CONFIG_TARGET_PRODUCT_MUNCH)
-			if (gpio_is_valid(tfa98xx->spk_sw_gpio)
+			if (gpio_is_valid(tfa98xx->spk_sw_gpio))
 				gpio_direction_output(tfa98xx->spk_sw_gpio, 0);
 #endif
 		} else
