@@ -1,0 +1,25 @@
+version: 2.1
+jobs:
+  alioth:
+   docker:
+      - image: debian:stable-slim
+   steps:
+      - run:
+          command: |
+            apt-get update && apt-get install -y bison build-essential bc bison curl libssl-dev git zip python python3 flex cpio libncurses5-dev wget
+            mkdir -p build && cd build/
+            git clone --depth=1 https://github.com/UtsavBalar1231/kernel_xiaomi_sm8250 -b android13-clo kernel
+            curl https://raw.githubusercontent.com/UtsavBalar1231/Drone-scripts/circleci/setup-circle  > setup.sh
+            curl https://raw.githubusercontent.com/UtsavBalar1231/Drone-scripts/circleci/build-kernel  > build-kernel.sh
+            export DEVICE="alioth"
+            export TYPE="0x00"
+            export KBUILD_BUILD_USER="UtsavTheCunt"
+            export KBUILD_BUILD_HOST="CuntsSpace"
+            source setup.sh
+            source build-kernel.sh --aosp-clang
+          no_output_timeout : 5h
+workflows:
+  version: 2.1
+  cooking:
+    jobs:
+      - alioth
